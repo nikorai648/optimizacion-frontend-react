@@ -1,7 +1,7 @@
 // src/api/fakeApi.js
 import { API_URL } from "./config";
 
-// 🔹 Login REAL contra Django /api/token/
+
 export async function login(username, password) {
   const res = await fetch(`${API_URL}/api/token/`, {
     method: "POST",
