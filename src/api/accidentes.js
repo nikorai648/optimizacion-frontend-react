@@ -1,78 +1,49 @@
 // src/api/accidentes.js
-import { API_URL, getAuthHeaders } from "./config";
+import { api } from "./client";
 
-// LISTAR
 export async function getAccidentes() {
-  const res = await fetch(`${API_URL}/api/accidentes/`, {
-    headers: {
-      "Content-Type": "application/json",
-      ...getAuthHeaders(),
-    },
-  });
-
-  if (!res.ok) throw new Error("Error al cargar accidentes");
-  return res.json();
+  try {
+    const res = await api.get("/api/accidentes/");
+    return res.data;
+  } catch (err) {
+    throw new Error("Error al cargar accidentes");
+  }
 }
 
-// OBTENER UNO
 export async function getAccidente(id) {
-  const res = await fetch(`${API_URL}/api/accidentes/${id}/`, {
-    headers: {
-      ...getAuthHeaders(),
-    },
-  });
-
-  if (!res.ok) throw new Error("No se pudo cargar accidente");
-  return res.json();
+  try {
+    const res = await api.get(`/api/accidentes/${id}/`);
+    return res.data;
+  } catch (err) {
+    throw new Error("No se pudo cargar accidente");
+  }
 }
 
-// CREAR
 export async function createAccidente(data) {
-  const res = await fetch(`${API_URL}/api/accidentes/`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      ...getAuthHeaders(),
-    },
-    body: JSON.stringify(data),
-  });
-
-  if (!res.ok) {
-    const err = await res.json().catch(() => ({}));
-    console.error("Error creación accidente:", err);
+  try {
+    const res = await api.post("/api/accidentes/", data);
+    return res.data;
+  } catch (err) {
+    console.error("Error creación accidente:", err?.response?.data);
     throw new Error("Error al crear accidente");
   }
-  return res.json();
 }
 
-// ACTUALIZAR
 export async function updateAccidente(id, data) {
-  const res = await fetch(`${API_URL}/api/accidentes/${id}/`, {
-    method: "PUT",
-    headers: {
-      "Content-Type": "application/json",
-      ...getAuthHeaders(),
-    },
-    body: JSON.stringify(data),
-  });
-
-  if (!res.ok) {
-    const err = await res.json().catch(() => ({}));
-    console.error("Error actualización accidente:", err);
+  try {
+    const res = await api.put(`/api/accidentes/${id}/`, data);
+    return res.data;
+  } catch (err) {
+    console.error("Error actualización accidente:", err?.response?.data);
     throw new Error("Error al actualizar accidente");
   }
-  return res.json();
 }
 
-// ELIMINAR
 export async function deleteAccidente(id) {
-  const res = await fetch(`${API_URL}/api/accidentes/${id}/`, {
-    method: "DELETE",
-    headers: {
-      ...getAuthHeaders(),
-    },
-  });
-
-  if (!res.ok) throw new Error("Error al eliminar accidente");
-  return true;
+  try {
+    await api.delete(`/api/accidentes/${id}/`);
+    return true;
+  } catch (err) {
+    throw new Error("Error al eliminar accidente");
+  }
 }

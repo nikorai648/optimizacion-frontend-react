@@ -1,19 +1,14 @@
 // src/api/auth.js
-import { API_URL } from "./config";
+import { api } from "./client";
 
 export async function loginApi(username, password) {
-  const res = await fetch(`${API_URL}/api/token/`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({ username, password }),
-  });
-
-  if (!res.ok) {
-    const data = await res.json().catch(() => ({}));
-    throw new Error(data.detail || "Credenciales inválidas");
+  try {
+    const res = await api.post("/api/token/", { username, password });
+    return res.data; // { token: "..." }
+  } catch (err) {
+    const msg =
+      err?.response?.data?.detail ||
+      "Credenciales inválidas o API no disponible.";
+    throw new Error(msg);
   }
-
-  return res.json(); // { token: "..." }
 }
