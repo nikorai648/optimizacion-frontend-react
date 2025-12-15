@@ -6,6 +6,17 @@ const initialForm = {
   rut: "",
   nombre: "",
   apellido: "",
+
+  // si tu modelo realmente los tiene, déjalos
+  fecha_nacimiento: "",
+  email: "",
+  rol_cargo: "",
+  tipo_contrato: "",
+
+  // ✅ OBLIGATORIOS (según tu error actual)
+  fecha_ingreso: "",
+  estado: "ACTIVO",
+
   turno: "DIURNO",
   tipo: "",
 };
@@ -35,16 +46,27 @@ export default function TrabajadorFormPage() {
       try {
         const data = await getTrabajador(id);
         if (cancel) return;
+
         setForm({
           rut: data?.rut || "",
           nombre: data?.nombre || "",
           apellido: data?.apellido || "",
+
+          fecha_nacimiento: data?.fecha_nacimiento || "",
+          email: data?.email || "",
+          rol_cargo: data?.rol_cargo || "",
+          tipo_contrato: data?.tipo_contrato || "",
+
+          // ✅ IMPORTANTES
+          fecha_ingreso: data?.fecha_ingreso || "",
+          estado: data?.estado || "ACTIVO",
+
           turno: data?.turno || "DIURNO",
           tipo: data?.tipo || "",
         });
       } catch (err) {
         console.error(err);
-        if (!cancel) setError("No se pudo cargar el trabajador");
+        if (!cancel) setError(err.message || "No se pudo cargar el trabajador");
       } finally {
         if (!cancel) setLoading(false);
       }
@@ -62,7 +84,11 @@ export default function TrabajadorFormPage() {
     if (!form.rut || !form.nombre || !form.apellido) {
       return "RUT, nombre y apellido son obligatorios.";
     }
+    if (!form.fecha_ingreso || !form.estado) {
+      return "Fecha de ingreso y estado son obligatorios.";
+    }
     if (form.rut.length < 8) return "RUT demasiado corto.";
+    if (form.email && !form.email.includes("@")) return "Email inválido.";
     return "";
   };
 
@@ -76,10 +102,11 @@ export default function TrabajadorFormPage() {
     try {
       if (esEditar) await updateTrabajador(id, form);
       else await createTrabajador(form);
+
       navigate("/trabajadores");
     } catch (err) {
       console.error(err);
-      setError("Error guardando trabajador");
+      setError(err.message || "Error guardando trabajador");
     } finally {
       setSaving(false);
     }
@@ -96,17 +123,67 @@ export default function TrabajadorFormPage() {
         <form className="row g-3" onSubmit={handleSubmit}>
           <div className="col-12">
             <label className="form-label" htmlFor="rut">RUT</label>
-            <input id="rut" name="rut" className="form-control" value={form.rut} onChange={handleChange} />
+            <input id="rut" name="rut" className="form-control" value={form.rut} onChange={handleChange} required />
           </div>
 
           <div className="col-md-6">
             <label className="form-label" htmlFor="nombre">Nombre</label>
-            <input id="nombre" name="nombre" className="form-control" value={form.nombre} onChange={handleChange} />
+            <input id="nombre" name="nombre" className="form-control" value={form.nombre} onChange={handleChange} required />
           </div>
 
           <div className="col-md-6">
             <label className="form-label" htmlFor="apellido">Apellido</label>
-            <input id="apellido" name="apellido" className="form-control" value={form.apellido} onChange={handleChange} />
+            <input id="apellido" name="apellido" className="form-control" value={form.apellido} onChange={handleChange} required />
+          </div>
+
+          {/* (opcionales si existen en tu modelo) */}
+          <div className="col-md-6">
+            <label className="form-label" htmlFor="fecha_nacimiento">Fecha nacimiento</label>
+            <input id="fecha_nacimiento" name="fecha_nacimiento" type="date" className="form-control" value={form.fecha_nacimiento} onChange={handleChange} />
+          </div>
+
+          <div className="col-md-6">
+            <label className="form-label" htmlFor="email">Email</label>
+            <input id="email" name="email" type="email" className="form-control" value={form.email} onChange={handleChange} />
+          </div>
+
+          <div className="col-md-6">
+            <label className="form-label" htmlFor="rol_cargo">Rol / Cargo</label>
+            <input id="rol_cargo" name="rol_cargo" className="form-control" value={form.rol_cargo} onChange={handleChange} />
+          </div>
+
+          <div className="col-md-6">
+            <label className="form-label" htmlFor="tipo_contrato">Tipo contrato</label>
+            <input id="tipo_contrato" name="tipo_contrato" className="form-control" value={form.tipo_contrato} onChange={handleChange} />
+          </div>
+
+          {/* ✅ OBLIGATORIOS reales */}
+          <div className="col-md-6">
+            <label className="form-label" htmlFor="fecha_ingreso">Fecha ingreso</label>
+            <input
+              id="fecha_ingreso"
+              name="fecha_ingreso"
+              type="date"
+              className="form-control"
+              value={form.fecha_ingreso}
+              onChange={handleChange}
+              required
+            />
+          </div>
+
+          <div className="col-md-6">
+            <label className="form-label" htmlFor="estado">Estado</label>
+            <select
+              id="estado"
+              name="estado"
+              className="form-select"
+              value={form.estado}
+              onChange={handleChange}
+              required
+            >
+              <option value="ACTIVO">ACTIVO</option>
+              <option value="INACTIVO">INACTIVO</option>
+            </select>
           </div>
 
           <div className="col-md-6">
@@ -119,15 +196,8 @@ export default function TrabajadorFormPage() {
           </div>
 
           <div className="col-md-6">
-            <label className="form-label" htmlFor="tipo">Tipo (cargo + contrato)</label>
-            <input
-              id="tipo"
-              name="tipo"
-              className="form-control"
-              placeholder="Operario - INDEFINIDO"
-              value={form.tipo}
-              onChange={handleChange}
-            />
+            <label className="form-label" htmlFor="tipo">Tipo</label>
+            <input id="tipo" name="tipo" className="form-control" value={form.tipo} onChange={handleChange} />
           </div>
 
           <div className="col-12 mt-3">
