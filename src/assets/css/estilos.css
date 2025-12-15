@@ -1,6 +1,38 @@
-body{
-  background-image: url("/img/fondo.jpg"); /* ✅ en Vite: desde public */
+/* Fondo general */
+body {
+  background:
+    linear-gradient(rgba(245, 245, 245, 0.92), rgba(245, 245, 245, 0.92)),
+    url("/img/fondo.jpg");
   background-size: cover;
   background-position: center;
   background-attachment: fixed;
+  font-family: Arial, sans-serif;
+}
+
+/* Logo flotante arriba a la derecha */
+.logo-esquina {
+  position: fixed;
+  top: 15px;
+  right: 20px;
+  width: 60px;
+  z-index: 2000;
+  border-radius: 10px;
+}
+
+/* Íconos de cada sección (✅ se ven completos, NO se recortan) */
+.icono-listado {
+  width: 55px;
+  height: 55px;
+  object-fit: contain; /* ✅ clave */
+  background: rgba(255, 255, 255, 0.75);
+  border-radius: 12px;
+  padding: 6px;
+}
+
+/* Opcional: tarjeta blanca para que destaque sobre el fondo */
+.card-page {
+  background: rgba(255, 255, 255, 0.92);
+  border-radius: 16px;
+  padding: 16px;
+  box-shadow: 0 6px 18px rgba(0,0,0,.08);
 }

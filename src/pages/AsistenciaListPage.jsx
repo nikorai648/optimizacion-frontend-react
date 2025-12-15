@@ -10,13 +10,15 @@ export default function AsistenciaListPage() {
     try {
       setError("");
       const data = await getAsistencias();
-      setItems(data);
+      setItems(Array.isArray(data) ? data : []);
     } catch (e) {
       setError(e.message || "No se pudieron cargar las asistencias");
     }
   };
 
-  useEffect(() => { cargar(); }, []);
+  useEffect(() => {
+    cargar();
+  }, []);
 
   const handleDelete = async (id) => {
     if (!window.confirm("¿Eliminar asistencia?")) return;
@@ -30,41 +32,68 @@ export default function AsistenciaListPage() {
 
   return (
     <div className="container mt-4">
-      <div className="d-flex justify-content-between align-items-center mb-3">
-        <h3>Asistencias</h3>
-        <Link to="/asistencias/nueva" className="btn btn-primary">Nueva</Link>
-      </div>
+      <div className="card-page">
+        <div className="d-flex justify-content-between align-items-center mb-3">
+          <div className="d-flex align-items-center gap-2">
+            <img
+              src="/img/asistencia.webp"
+              className="icono-listado"
+              alt="Asistencias"
+            />
+            <h3 className="mb-0">Asistencias</h3>
+          </div>
 
-      {error && <div className="alert alert-danger">{error}</div>}
+          <Link to="/asistencias/nueva" className="btn btn-primary">
+            Nueva
+          </Link>
+        </div>
 
-      <table className="table table-striped table-sm">
-        <thead>
-          <tr>
-            <th>RUT</th>
-            <th>Nombre</th>
-            <th>Fecha</th>
-            <th>Estado</th>
-            <th className="text-end">Acciones</th>
-          </tr>
-        </thead>
-        <tbody>
-          {items.map((a) => (
-            <tr key={a.id}>
-              <td>{a.trabajador_rut}</td>
-              <td>{a.trabajador_nombre}</td>
-              <td>{a.fecha}</td>
-              <td>{a.estado}</td>
-              <td className="text-end">
-                <Link className="btn btn-sm btn-secondary me-2" to={`/asistencias/${a.id}`}>Editar</Link>
-                <button className="btn btn-sm btn-danger" onClick={() => handleDelete(a.id)}>Eliminar</button>
-              </td>
+        {error && <div className="alert alert-danger">{error}</div>}
+
+        <table className="table table-striped table-sm">
+          <thead>
+            <tr>
+              <th>RUT</th>
+              <th>Nombre</th>
+              <th>Fecha</th>
+              <th>Estado</th>
+              <th className="text-end">Acciones</th>
             </tr>
-          ))}
-          {items.length === 0 && (
-            <tr><td colSpan="5" className="text-center">Sin registros</td></tr>
-          )}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {items.map((a) => (
+              <tr key={a.id}>
+                <td>{a.trabajador_rut}</td>
+                <td>{a.trabajador_nombre}</td>
+                <td>{a.fecha}</td>
+                <td>{a.estado}</td>
+                <td className="text-end">
+                  <Link
+                    className="btn btn-sm btn-secondary me-2"
+                    to={`/asistencias/${a.id}`}
+                  >
+                    Editar
+                  </Link>
+                  <button
+                    className="btn btn-sm btn-danger"
+                    onClick={() => handleDelete(a.id)}
+                  >
+                    Eliminar
+                  </button>
+                </td>
+              </tr>
+            ))}
+
+            {items.length === 0 && (
+              <tr>
+                <td colSpan="5" className="text-center">
+                  Sin registros
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 }

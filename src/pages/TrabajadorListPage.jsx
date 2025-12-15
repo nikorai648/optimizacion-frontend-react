@@ -39,61 +39,71 @@ export default function TrabajadorListPage() {
 
   return (
     <div className="container mt-4">
-      <div className="d-flex justify-content-between align-items-center mb-3">
-        <h3>Trabajadores</h3>
-        <Link className="btn btn-primary" to="/trabajadores/nuevo">
-          Nuevo
-        </Link>
-      </div>
+      <div className="card-page">
+        <div className="d-flex justify-content-between align-items-center mb-3">
+          <div className="d-flex align-items-center gap-2">
+            <img
+              src="/img/trabajador.jpg"
+              className="icono-listado"
+              alt="Trabajadores"
+            />
+            <h3 className="mb-0">Trabajadores</h3>
+          </div>
 
-      {loading && <div>Cargando...</div>}
-      {!loading && error && <div className="alert alert-danger">{error}</div>}
+          <Link className="btn btn-primary" to="/trabajadores/nuevo">
+            Nuevo
+          </Link>
+        </div>
 
-      {!loading && !error && (
-        <table className="table table-striped">
-          <thead>
-            <tr>
-              <th>RUT</th>
-              <th>Nombre</th>
-              <th>Turno</th>
-              <th>Tipo</th>
-              <th className="text-end">Acciones</th>
-            </tr>
-          </thead>
-          <tbody>
-            {trabajadores.length === 0 && (
+        {loading && <div>Cargando...</div>}
+        {!loading && error && <div className="alert alert-danger">{error}</div>}
+
+        {!loading && !error && (
+          <table className="table table-striped">
+            <thead>
               <tr>
-                <td colSpan="5">Sin registros</td>
+                <th>RUT</th>
+                <th>Nombre</th>
+                <th>Turno</th>
+                <th>Tipo</th>
+                <th className="text-end">Acciones</th>
               </tr>
-            )}
+            </thead>
+            <tbody>
+              {trabajadores.length === 0 && (
+                <tr>
+                  <td colSpan="5">Sin registros</td>
+                </tr>
+              )}
 
-            {trabajadores.map((t) => (
-              <tr key={t.id}>
-                <td>{t.rut}</td>
-                <td>
-                  {t.nombre} {t.apellido}
-                </td>
-                <td>{t.turno}</td>
-                <td>{t.tipo}</td>
-                <td className="text-end">
-                  <Link
-                    className="btn btn-sm btn-secondary me-2"
-                    to={`/trabajadores/${t.id}`}
-                  >
-                    Editar
-                  </Link>
-                  <button
-                    className="btn btn-sm btn-danger"
-                    onClick={() => handleDelete(t.id)}
-                  >
-                    Eliminar
-                  </button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      )}
+              {trabajadores.map((t) => (
+                <tr key={t.id}>
+                  <td>{t.rut}</td>
+                  <td>
+                    {t.nombre} {t.apellido}
+                  </td>
+                  <td>{t.turno}</td>
+                  <td>{t.tipo}</td>
+                  <td className="text-end">
+                    <Link
+                      className="btn btn-sm btn-secondary me-2"
+                      to={`/trabajadores/${t.id}`}
+                    >
+                      Editar
+                    </Link>
+                    <button
+                      className="btn btn-sm btn-danger"
+                      onClick={() => handleDelete(t.id)}
+                    >
+                      Eliminar
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
+      </div>
     </div>
   );
 }

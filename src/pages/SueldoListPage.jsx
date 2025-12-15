@@ -9,13 +9,16 @@ export default function SueldoListPage() {
   const cargar = async () => {
     try {
       setError("");
-      setItems(await getSueldos());
+      const data = await getSueldos();
+      setItems(Array.isArray(data) ? data : []);
     } catch (e) {
       setError(e.message || "Error cargando sueldos");
     }
   };
 
-  useEffect(() => { cargar(); }, []);
+  useEffect(() => {
+    cargar();
+  }, []);
 
   const handleDelete = async (id) => {
     if (!window.confirm("¿Eliminar sueldo?")) return;
@@ -29,43 +32,71 @@ export default function SueldoListPage() {
 
   return (
     <div className="container mt-4">
-      <div className="d-flex justify-content-between align-items-center mb-3">
-        <h3>Sueldos</h3>
-        <Link to="/sueldos/nuevo" className="btn btn-primary">Nuevo</Link>
-      </div>
+      <div className="card-page">
+        <div className="d-flex justify-content-between align-items-center mb-3">
+          <div className="d-flex align-items-center gap-2">
+            <img
+              src="/img/sueldo.webp"
+              className="icono-listado"
+              alt="Sueldos"
+            />
+            <h3 className="mb-0">Sueldos</h3>
+          </div>
 
-      {error && <div className="alert alert-danger">{error}</div>}
+          <Link to="/sueldos/nuevo" className="btn btn-primary">
+            Nuevo
+          </Link>
+        </div>
 
-      <table className="table table-striped table-sm">
-        <thead>
-          <tr>
-            <th>RUT</th>
-            <th>Nombre</th>
-            <th>Mes</th>
-            <th>Trabajos</th>
-            <th>Total</th>
-            <th>ID Efic.</th>
-            <th className="text-end">Acciones</th>
-          </tr>
-        </thead>
-        <tbody>
-          {items.map((x) => (
-            <tr key={x.id}>
-              <td>{x.trabajador_rut}</td>
-              <td>{x.trabajador_nombre}</td>
-              <td>{x.mes}</td>
-              <td>{x.cantidad_trabajos_mes}</td>
-              <td>{x.sueldo_total_mes}</td>
-              <td>{x.id_eficiencia_asociada ?? ""}</td>
-              <td className="text-end">
-                <Link className="btn btn-sm btn-secondary me-2" to={`/sueldos/${x.id}`}>Editar</Link>
-                <button className="btn btn-sm btn-danger" onClick={() => handleDelete(x.id)}>Eliminar</button>
-              </td>
+        {error && <div className="alert alert-danger">{error}</div>}
+
+        <table className="table table-striped table-sm">
+          <thead>
+            <tr>
+              <th>RUT</th>
+              <th>Nombre</th>
+              <th>Mes</th>
+              <th>Trabajos</th>
+              <th>Total</th>
+              <th>ID Efic.</th>
+              <th className="text-end">Acciones</th>
             </tr>
-          ))}
-          {items.length === 0 && <tr><td colSpan="7" className="text-center">Sin registros</td></tr>}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {items.map((x) => (
+              <tr key={x.id}>
+                <td>{x.trabajador_rut}</td>
+                <td>{x.trabajador_nombre}</td>
+                <td>{x.mes}</td>
+                <td>{x.cantidad_trabajos_mes}</td>
+                <td>{x.sueldo_total_mes}</td>
+                <td>{x.id_eficiencia_asociada ?? ""}</td>
+                <td className="text-end">
+                  <Link
+                    className="btn btn-sm btn-secondary me-2"
+                    to={`/sueldos/${x.id}`}
+                  >
+                    Editar
+                  </Link>
+                  <button
+                    className="btn btn-sm btn-danger"
+                    onClick={() => handleDelete(x.id)}
+                  >
+                    Eliminar
+                  </button>
+                </td>
+              </tr>
+            ))}
+            {items.length === 0 && (
+              <tr>
+                <td colSpan="7" className="text-center">
+                  Sin registros
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 }
