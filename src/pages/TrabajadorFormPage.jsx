@@ -7,18 +7,21 @@ const initialForm = {
   nombre: "",
   apellido: "",
 
-  // si tu modelo realmente los tiene, déjalos
   fecha_nacimiento: "",
   email: "",
+  telefono: "",
+
   rol_cargo: "",
   tipo_contrato: "",
-
-  // ✅ OBLIGATORIOS (según tu error actual)
-  fecha_ingreso: "",
-  estado: "ACTIVO",
+  area: "",
 
   turno: "DIURNO",
-  tipo: "",
+  fecha_ingreso: "",
+  sueldo_base: 0,
+
+  estado: "ACTIVO",
+  contacto_emergencia: "",
+  telefono_emergencia: "",
 };
 
 export default function TrabajadorFormPage() {
@@ -48,21 +51,25 @@ export default function TrabajadorFormPage() {
         if (cancel) return;
 
         setForm({
-          rut: data?.rut || "",
-          nombre: data?.nombre || "",
-          apellido: data?.apellido || "",
+          rut: data?.rut ?? "",
+          nombre: data?.nombre ?? "",
+          apellido: data?.apellido ?? "",
 
-          fecha_nacimiento: data?.fecha_nacimiento || "",
-          email: data?.email || "",
-          rol_cargo: data?.rol_cargo || "",
-          tipo_contrato: data?.tipo_contrato || "",
+          fecha_nacimiento: data?.fecha_nacimiento ?? "",
+          email: data?.email ?? "",
+          telefono: data?.telefono ?? "",
 
-          // ✅ IMPORTANTES
-          fecha_ingreso: data?.fecha_ingreso || "",
-          estado: data?.estado || "ACTIVO",
+          rol_cargo: data?.rol_cargo ?? "",
+          tipo_contrato: data?.tipo_contrato ?? "",
+          area: data?.area ?? "",
 
-          turno: data?.turno || "DIURNO",
-          tipo: data?.tipo || "",
+          turno: data?.turno ?? "DIURNO",
+          fecha_ingreso: data?.fecha_ingreso ?? "",
+          sueldo_base: data?.sueldo_base ?? 0,
+
+          estado: data?.estado ?? "ACTIVO",
+          contacto_emergencia: data?.contacto_emergencia ?? "",
+          telefono_emergencia: data?.telefono_emergencia ?? "",
         });
       } catch (err) {
         console.error(err);
@@ -77,18 +84,32 @@ export default function TrabajadorFormPage() {
   }, [id, esEditar]);
 
   const handleChange = (e) => {
-    setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
+    const { name, value } = e.target;
+    setForm((prev) => ({ ...prev, [name]: value }));
   };
 
   const validar = () => {
     if (!form.rut || !form.nombre || !form.apellido) {
       return "RUT, nombre y apellido son obligatorios.";
     }
-    if (!form.fecha_ingreso || !form.estado) {
-      return "Fecha de ingreso y estado son obligatorios.";
+    if (!form.rut.includes("-")) {
+      return "El RUT debe incluir guion. Ej: 199952632-4";
     }
-    if (form.rut.length < 8) return "RUT demasiado corto.";
-    if (form.email && !form.email.includes("@")) return "Email inválido.";
+    if (!form.fecha_nacimiento || !form.fecha_ingreso) {
+      return "Fecha nacimiento y fecha ingreso son obligatorias.";
+    }
+    if (!form.email || !form.email.includes("@")) {
+      return "Email inválido.";
+    }
+    if (!form.rol_cargo || !form.tipo_contrato) {
+      return "Rol/cargo y tipo contrato son obligatorios.";
+    }
+    if (!form.turno) {
+      return "Turno es obligatorio.";
+    }
+    if (!["ACTIVO", "INACTIVO"].includes(form.estado)) {
+      return "Estado debe ser ACTIVO o INACTIVO.";
+    }
     return "";
   };
 
@@ -100,8 +121,13 @@ export default function TrabajadorFormPage() {
     setSaving(true);
     setError("");
     try {
-      if (esEditar) await updateTrabajador(id, form);
-      else await createTrabajador(form);
+      const payload = {
+        ...form,
+        sueldo_base: Number(form.sueldo_base || 0),
+      };
+
+      if (esEditar) await updateTrabajador(id, payload);
+      else await createTrabajador(payload);
 
       navigate("/trabajadores");
     } catch (err) {
@@ -113,7 +139,7 @@ export default function TrabajadorFormPage() {
   };
 
   return (
-    <div className="container mt-4 col-md-6">
+    <div className="container mt-4 col-md-8">
       <h3>{esEditar ? "Editar Trabajador" : "Nuevo Trabajador"}</h3>
 
       {loading && <div>Cargando...</div>}
@@ -121,83 +147,86 @@ export default function TrabajadorFormPage() {
 
       {!loading && (
         <form className="row g-3" onSubmit={handleSubmit}>
-          <div className="col-12">
-            <label className="form-label" htmlFor="rut">RUT</label>
-            <input id="rut" name="rut" className="form-control" value={form.rut} onChange={handleChange} required />
+          <div className="col-md-4">
+            <label className="form-label">RUT *</label>
+            <input name="rut" className="form-control" value={form.rut} onChange={handleChange} required />
+          </div>
+
+          <div className="col-md-4">
+            <label className="form-label">Nombre *</label>
+            <input name="nombre" className="form-control" value={form.nombre} onChange={handleChange} required />
+          </div>
+
+          <div className="col-md-4">
+            <label className="form-label">Apellido *</label>
+            <input name="apellido" className="form-control" value={form.apellido} onChange={handleChange} required />
+          </div>
+
+          <div className="col-md-4">
+            <label className="form-label">Fecha nacimiento *</label>
+            <input type="date" name="fecha_nacimiento" className="form-control" value={form.fecha_nacimiento} onChange={handleChange} required />
+          </div>
+
+          <div className="col-md-4">
+            <label className="form-label">Email *</label>
+            <input type="email" name="email" className="form-control" value={form.email} onChange={handleChange} required />
+          </div>
+
+          <div className="col-md-4">
+            <label className="form-label">Teléfono</label>
+            <input name="telefono" className="form-control" value={form.telefono} onChange={handleChange} />
           </div>
 
           <div className="col-md-6">
-            <label className="form-label" htmlFor="nombre">Nombre</label>
-            <input id="nombre" name="nombre" className="form-control" value={form.nombre} onChange={handleChange} required />
+            <label className="form-label">Rol / Cargo *</label>
+            <input name="rol_cargo" className="form-control" value={form.rol_cargo} onChange={handleChange} required />
           </div>
 
           <div className="col-md-6">
-            <label className="form-label" htmlFor="apellido">Apellido</label>
-            <input id="apellido" name="apellido" className="form-control" value={form.apellido} onChange={handleChange} required />
+            <label className="form-label">Tipo contrato *</label>
+            <input name="tipo_contrato" className="form-control" value={form.tipo_contrato} onChange={handleChange} required />
           </div>
 
-          {/* (opcionales si existen en tu modelo) */}
-          <div className="col-md-6">
-            <label className="form-label" htmlFor="fecha_nacimiento">Fecha nacimiento</label>
-            <input id="fecha_nacimiento" name="fecha_nacimiento" type="date" className="form-control" value={form.fecha_nacimiento} onChange={handleChange} />
+          <div className="col-md-4">
+            <label className="form-label">Área</label>
+            <input name="area" className="form-control" value={form.area} onChange={handleChange} />
           </div>
 
-          <div className="col-md-6">
-            <label className="form-label" htmlFor="email">Email</label>
-            <input id="email" name="email" type="email" className="form-control" value={form.email} onChange={handleChange} />
+          <div className="col-md-4">
+            <label className="form-label">Turno *</label>
+            <select name="turno" className="form-select" value={form.turno} onChange={handleChange} required>
+              <option value="DIURNO">DIURNO</option>
+              <option value="NOCTURNO">NOCTURNO</option>
+              <option value="ROTATIVO">ROTATIVO</option>
+            </select>
           </div>
 
-          <div className="col-md-6">
-            <label className="form-label" htmlFor="rol_cargo">Rol / Cargo</label>
-            <input id="rol_cargo" name="rol_cargo" className="form-control" value={form.rol_cargo} onChange={handleChange} />
+          <div className="col-md-4">
+            <label className="form-label">Fecha ingreso *</label>
+            <input type="date" name="fecha_ingreso" className="form-control" value={form.fecha_ingreso} onChange={handleChange} required />
           </div>
 
-          <div className="col-md-6">
-            <label className="form-label" htmlFor="tipo_contrato">Tipo contrato</label>
-            <input id="tipo_contrato" name="tipo_contrato" className="form-control" value={form.tipo_contrato} onChange={handleChange} />
+          <div className="col-md-4">
+            <label className="form-label">Sueldo base</label>
+            <input type="number" step="0.01" min="0" name="sueldo_base" className="form-control" value={form.sueldo_base} onChange={handleChange} />
           </div>
 
-          {/* ✅ OBLIGATORIOS reales */}
-          <div className="col-md-6">
-            <label className="form-label" htmlFor="fecha_ingreso">Fecha ingreso</label>
-            <input
-              id="fecha_ingreso"
-              name="fecha_ingreso"
-              type="date"
-              className="form-control"
-              value={form.fecha_ingreso}
-              onChange={handleChange}
-              required
-            />
-          </div>
-
-          <div className="col-md-6">
-            <label className="form-label" htmlFor="estado">Estado</label>
-            <select
-              id="estado"
-              name="estado"
-              className="form-select"
-              value={form.estado}
-              onChange={handleChange}
-              required
-            >
+          <div className="col-md-4">
+            <label className="form-label">Estado *</label>
+            <select name="estado" className="form-select" value={form.estado} onChange={handleChange} required>
               <option value="ACTIVO">ACTIVO</option>
               <option value="INACTIVO">INACTIVO</option>
             </select>
           </div>
 
           <div className="col-md-6">
-            <label className="form-label" htmlFor="turno">Turno</label>
-            <select id="turno" name="turno" className="form-select" value={form.turno} onChange={handleChange}>
-              <option value="DIURNO">Diurno</option>
-              <option value="NOCTURNO">Nocturno</option>
-              <option value="ROTATIVO">Rotativo</option>
-            </select>
+            <label className="form-label">Contacto emergencia</label>
+            <input name="contacto_emergencia" className="form-control" value={form.contacto_emergencia} onChange={handleChange} />
           </div>
 
           <div className="col-md-6">
-            <label className="form-label" htmlFor="tipo">Tipo</label>
-            <input id="tipo" name="tipo" className="form-control" value={form.tipo} onChange={handleChange} />
+            <label className="form-label">Teléfono emergencia</label>
+            <input name="telefono_emergencia" className="form-control" value={form.telefono_emergencia} onChange={handleChange} />
           </div>
 
           <div className="col-12 mt-3">
