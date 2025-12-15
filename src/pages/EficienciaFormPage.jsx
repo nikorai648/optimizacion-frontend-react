@@ -5,93 +5,82 @@ import { createEficiencia, getEficiencia, updateEficiencia } from "../api/eficie
 const initialForm = {
   trabajador_rut: "",
   trabajador_nombre: "",
-  id_eficiencia: "",
+  id_eficiencia: 1,
   trabajos_completados_en_1_mes: 0,
   sueldo_promedio_informado: 0,
 };
 
 export default function EficienciaFormPage() {
   const { id } = useParams();
-  const navigate = useNavigate();
   const esEditar = Boolean(id);
+  const navigate = useNavigate();
 
   const [form, setForm] = useState(initialForm);
-  const [loading, setLoading] = useState(esEditar);
-  const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
+  const [saving, setSaving] = useState(false);
 
   useEffect(() => {
-    if (!esEditar) return setLoading(false);
-
+    if (!esEditar) return;
     getEficiencia(id)
-      .then((data) => {
-        setForm({
-          trabajador_rut: data.trabajador_rut || "",
-          trabajador_nombre: data.trabajador_nombre || "",
-          id_eficiencia: data.id_eficiencia ?? "",
-          trabajos_completados_en_1_mes: data.trabajos_completados_en_1_mes ?? 0,
-          sueldo_promedio_informado: data.sueldo_promedio_informado ?? 0,
-        });
-      })
-      .catch(() => setError("No se pudo cargar eficiencia"))
-      .finally(() => setLoading(false));
+      .then((data) => setForm({ ...initialForm, ...data }))
+      .catch((e) => setError(e.message || "No se pudo cargar"));
   }, [id, esEditar]);
 
-  const handleChange = (e) =>
-    setForm({ ...form, [e.target.name]: e.target.value });
+  const handleChange = (e) => {
+    const { name, value, type } = e.target;
+    const v = type === "number" ? Number(value) : value;
+    setForm((p) => ({ ...p, [name]: v }));
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setSaving(true);
     setError("");
-
-    const payload = {
-      ...form,
-      id_eficiencia: Number(form.id_eficiencia),
-      trabajos_completados_en_1_mes: Number(form.trabajos_completados_en_1_mes),
-      sueldo_promedio_informado: Number(form.sueldo_promedio_informado),
-    };
-
     try {
-      esEditar ? await updateEficiencia(id, payload) : await createEficiencia(payload);
+      esEditar ? await updateEficiencia(id, form) : await createEficiencia(form);
       navigate("/eficiencias");
-    } catch {
-      setError("Error al guardar eficiencia");
+    } catch (e2) {
+      setError(e2.message || "Error guardando");
     } finally {
       setSaving(false);
     }
   };
 
-  if (loading) return <div className="container mt-4">Cargando...</div>;
-
   return (
-    <div className="container mt-4 col-md-6">
-      <h3>{esEditar ? "Editar" : "Nueva"} Eficiencia</h3>
+    <div className="container mt-4 col-md-8">
+      <h3>{esEditar ? "Editar Eficiencia" : "Nueva Eficiencia"}</h3>
       {error && <div className="alert alert-danger">{error}</div>}
 
-      <form onSubmit={handleSubmit}>
-        {Object.keys(initialForm).map((key) => (
-          <div className="mb-3" key={key}>
-            <label className="form-label">{key.replaceAll("_", " ")}</label>
-            <input
-              className="form-control"
-              name={key}
-              value={form[key]}
-              onChange={handleChange}
-            />
-          </div>
-        ))}
+      <form className="row g-3" onSubmit={handleSubmit}>
+        <div className="col-md-6">
+          <label className="form-label">Trabajador RUT</label>
+          <input className="form-control" name="trabajador_rut" value={form.trabajador_rut} onChange={handleChange} required />
+        </div>
 
-        <button className="btn btn-success me-2" disabled={saving}>
-          Guardar
-        </button>
-        <button
-          type="button"
-          className="btn btn-secondary"
-          onClick={() => navigate("/eficiencias")}
-        >
-          Cancelar
-        </button>
+        <div className="col-md-6">
+          <label className="form-label">Trabajador Nombre</label>
+          <input className="form-control" name="trabajador_nombre" value={form.trabajador_nombre} onChange={handleChange} required />
+        </div>
+
+        <div className="col-md-4">
+          <label className="form-label">ID eficiencia</label>
+          <input type="number" min="1" className="form-control" name="id_eficiencia" value={form.id_eficiencia} onChange={handleChange} required />
+        </div>
+
+        <div className="col-md-4">
+          <label className="form-label">Trabajos completados (1 mes)</label>
+          <input type="number" min="0" className="form-control" name="trabajos_completados_en_1_mes" value={form.trabajos_completados_en_1_mes} onChange={handleChange} />
+        </div>
+
+        <div className="col-md-4">
+          <label className="form-label">Sueldo promedio informado</label>
+          <input type="number" min="0" className="form-control" name="sueldo_promedio_informado" value={form.sueldo_promedio_informado} onChange={handleChange} />
+        </div>
+
+        <div className="col-12">
+          <button className="btn btn-success me-2" disabled={saving}>{saving ? "Guardando..." : "Guardar"}</button>
+          <button type="button" className="btn btn-secondary" onClick={() => navigate("/eficiencias")} disabled={saving}>Cancelar</button>
+        </div>
       </form>
     </div>
   );

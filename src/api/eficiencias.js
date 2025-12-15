@@ -1,22 +1,13 @@
-// src/api/eficiencias.js
 import { api } from "./client";
 
 export async function getEficiencias() {
-  try {
-    const res = await api.get("/api/eficiencias/");
-    return res.data;
-  } catch (err) {
-    throw new Error("Error al cargar eficiencias");
-  }
+  const res = await api.get("/api/eficiencias/");
+  return res.data;
 }
 
 export async function getEficiencia(id) {
-  try {
-    const res = await api.get(`/api/eficiencias/${id}/`);
-    return res.data;
-  } catch (err) {
-    throw new Error("Error al cargar eficiencia");
-  }
+  const res = await api.get(`/api/eficiencias/${id}/`);
+  return res.data;
 }
 
 export async function createEficiencia(data) {
@@ -24,8 +15,9 @@ export async function createEficiencia(data) {
     const res = await api.post("/api/eficiencias/", data);
     return res.data;
   } catch (err) {
-    console.error("Error creación eficiencia:", err?.response?.data);
-    throw new Error("Error al crear eficiencia");
+    const detail = err?.response?.data;
+    console.error("Error creación eficiencia:", detail);
+    throw new Error(typeof detail === "string" ? detail : JSON.stringify(detail));
   }
 }
 
@@ -34,16 +26,13 @@ export async function updateEficiencia(id, data) {
     const res = await api.put(`/api/eficiencias/${id}/`, data);
     return res.data;
   } catch (err) {
-    console.error("Error actualización eficiencia:", err?.response?.data);
-    throw new Error("Error al actualizar eficiencia");
+    const detail = err?.response?.data;
+    console.error("Error actualización eficiencia:", detail);
+    throw new Error(typeof detail === "string" ? detail : JSON.stringify(detail));
   }
 }
 
 export async function deleteEficiencia(id) {
-  try {
-    await api.delete(`/api/eficiencias/${id}/`);
-    return true;
-  } catch (err) {
-    throw new Error("Error al eliminar eficiencia");
-  }
+  await api.delete(`/api/eficiencias/${id}/`);
+  return true;
 }

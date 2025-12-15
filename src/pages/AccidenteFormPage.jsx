@@ -1,239 +1,154 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { createAccidente, getAccidente, updateAccidente } from "../api/accidentes";
-import { getTrabajadores } from "../api/trabajadores";
 
 const initialForm = {
-  trabajador: "",       // id trabajador
   fecha: "",
   tipo: "",
   gravedad: "LEVE",
   lugar: "",
+  hora_suceso: "",
+  descripcion: "",
   requiere_licencia: false,
   dias_licencia: 0,
+  costo_estimado: "",
+  reportado_a: "",
   observaciones: "",
+  trabajadores_involucrados: "",
 };
 
 export default function AccidenteFormPage() {
   const { id } = useParams();
-  const navigate = useNavigate();
   const esEditar = Boolean(id);
+  const navigate = useNavigate();
 
   const [form, setForm] = useState(initialForm);
-  const [trabajadores, setTrabajadores] = useState([]);
-  const [loading, setLoading] = useState(esEditar);
-  const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
+  const [saving, setSaving] = useState(false);
 
   useEffect(() => {
-    let cancel = false;
-
-    const cargarTodo = async () => {
-      setError("");
-
-      try {
-        const ts = await getTrabajadores();
-        if (!cancel) setTrabajadores(Array.isArray(ts) ? ts : []);
-      } catch (err) {
-        console.error(err);
-        if (!cancel) setError("No se pudieron cargar trabajadores");
-      }
-
-      if (esEditar) {
-        setLoading(true);
-        try {
-          const data = await getAccidente(id);
-          if (cancel) return;
-
-          setForm({
-            trabajador: data?.trabajador ?? "",
-            fecha: data?.fecha || "",
-            tipo: data?.tipo || data?.descripcion || "",
-            gravedad: data?.gravedad || "LEVE",
-            lugar: data?.lugar || "",
-            requiere_licencia: !!data?.requiere_licencia,
-            dias_licencia: data?.dias_licencia ?? 0,
-            observaciones: data?.observaciones || "",
-          });
-        } catch (err) {
-          console.error(err);
-          if (!cancel) setError("No se pudo cargar el accidente");
-        } finally {
-          if (!cancel) setLoading(false);
-        }
-      } else {
-        setLoading(false);
-        setForm(initialForm);
-      }
-    };
-
-    cargarTodo();
-    return () => { cancel = true; };
+    if (!esEditar) return;
+    getAccidente(id)
+      .then((data) => setForm({ ...initialForm, ...data }))
+      .catch((e) => setError(e.message || "No se pudo cargar"));
   }, [id, esEditar]);
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
 
-    setForm((prev) => ({
-      ...prev,
-      [name]: type === "checkbox" ? checked : value,
-    }));
+    if (type === "checkbox") {
+      setForm((p) => ({ ...p, [name]: checked }));
+      return;
+    }
+
+    if (type === "number") {
+      setForm((p) => ({ ...p, [name]: value === "" ? "" : Number(value) }));
+      return;
+    }
+
+    setForm((p) => ({ ...p, [name]: value }));
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError("");
-
-    if (!form.trabajador || !form.fecha || !form.tipo) {
-      return setError("Trabajador, fecha y tipo son obligatorios.");
-    }
-
-    const payload = {
-      ...form,
-      dias_licencia: Number(form.dias_licencia) || 0,
-    };
-
     setSaving(true);
+    setError("");
     try {
-      if (esEditar) await updateAccidente(id, payload);
-      else await createAccidente(payload);
+      const payload = {
+        ...form,
+        // si no requiere licencia, forzamos 0
+        dias_licencia: form.requiere_licencia ? Number(form.dias_licencia || 0) : 0,
+        // costo puede ser null/blank
+        costo_estimado: form.costo_estimado === "" ? null : form.costo_estimado,
+      };
+
+      esEditar ? await updateAccidente(id, payload) : await createAccidente(payload);
       navigate("/accidentes");
-    } catch (err) {
-      console.error(err);
-      setError("Error al guardar accidente");
+    } catch (e2) {
+      setError(e2.message || "Error guardando");
     } finally {
       setSaving(false);
     }
   };
 
   return (
-    <div className="container mt-4 col-md-6">
+    <div className="container mt-4 col-md-9">
       <h3>{esEditar ? "Editar Accidente" : "Nuevo Accidente"}</h3>
+      {error && <div className="alert alert-danger">{error}</div>}
 
-      {loading && <div>Cargando...</div>}
-      {!loading && error && <div className="alert alert-danger">{error}</div>}
+      <form className="row g-3" onSubmit={handleSubmit}>
+        <div className="col-md-4">
+          <label className="form-label">Fecha</label>
+          <input type="date" className="form-control" name="fecha" value={form.fecha} onChange={handleChange} required />
+        </div>
 
-      {!loading && (
-        <form onSubmit={handleSubmit}>
-          <div className="mb-3">
-            <label className="form-label">Trabajador</label>
-            <select
-              name="trabajador"
-              className="form-select"
-              value={form.trabajador}
-              onChange={handleChange}
-              required
-            >
-              <option value="">Seleccione</option>
-              {trabajadores.map((t) => (
-                <option key={t.id} value={t.id}>
-                  {t.nombre} {t.apellido} ({t.rut})
-                </option>
-              ))}
-            </select>
+        <div className="col-md-4">
+          <label className="form-label">Tipo</label>
+          <input className="form-control" name="tipo" value={form.tipo} onChange={handleChange} required />
+        </div>
+
+        <div className="col-md-4">
+          <label className="form-label">Gravedad</label>
+          <select className="form-select" name="gravedad" value={form.gravedad} onChange={handleChange} required>
+            <option value="LEVE">LEVE</option>
+            <option value="MODERADA">MODERADA</option>
+            <option value="GRAVE">GRAVE</option>
+            <option value="FATAL">FATAL</option>
+          </select>
+        </div>
+
+        <div className="col-md-8">
+          <label className="form-label">Lugar</label>
+          <input className="form-control" name="lugar" value={form.lugar} onChange={handleChange} required />
+        </div>
+
+        <div className="col-md-4">
+          <label className="form-label">Hora suceso</label>
+          <input type="time" className="form-control" name="hora_suceso" value={form.hora_suceso || ""} onChange={handleChange} />
+        </div>
+
+        <div className="col-12">
+          <label className="form-label">Descripción</label>
+          <textarea className="form-control" name="descripcion" value={form.descripcion || ""} onChange={handleChange} />
+        </div>
+
+        <div className="col-md-3 d-flex align-items-end">
+          <div className="form-check">
+            <input className="form-check-input" type="checkbox" id="req" name="requiere_licencia" checked={!!form.requiere_licencia} onChange={handleChange} />
+            <label className="form-check-label" htmlFor="req">Requiere licencia</label>
           </div>
+        </div>
 
-          <div className="mb-3">
-            <label className="form-label">Fecha</label>
-            <input
-              type="date"
-              name="fecha"
-              className="form-control"
-              value={form.fecha}
-              onChange={handleChange}
-              required
-            />
-          </div>
+        <div className="col-md-3">
+          <label className="form-label">Días licencia</label>
+          <input type="number" min="0" className="form-control" name="dias_licencia" value={form.dias_licencia} onChange={handleChange} disabled={!form.requiere_licencia} />
+        </div>
 
-          <div className="mb-3">
-            <label className="form-label">Tipo de accidente</label>
-            <input
-              name="tipo"
-              className="form-control"
-              value={form.tipo}
-              onChange={handleChange}
-              placeholder="Caída, golpe, etc."
-              required
-            />
-          </div>
+        <div className="col-md-3">
+          <label className="form-label">Costo estimado</label>
+          <input type="number" min="0" step="0.01" className="form-control" name="costo_estimado" value={form.costo_estimado ?? ""} onChange={handleChange} />
+        </div>
 
-          <div className="mb-3">
-            <label className="form-label">Gravedad</label>
-            <select
-              name="gravedad"
-              className="form-select"
-              value={form.gravedad}
-              onChange={handleChange}
-            >
-              <option value="LEVE">Leve</option>
-              <option value="MODERADA">Moderada</option>
-              <option value="GRAVE">Grave</option>
-              <option value="FATAL">Fatal</option>
-            </select>
-          </div>
+        <div className="col-md-3">
+          <label className="form-label">Reportado a</label>
+          <input className="form-control" name="reportado_a" value={form.reportado_a || ""} onChange={handleChange} />
+        </div>
 
-          <div className="mb-3">
-            <label className="form-label">Lugar</label>
-            <input
-              name="lugar"
-              className="form-control"
-              value={form.lugar}
-              onChange={handleChange}
-            />
-          </div>
+        <div className="col-12">
+          <label className="form-label">Trabajadores involucrados (RUTs o nombres separados por coma)</label>
+          <input className="form-control" name="trabajadores_involucrados" value={form.trabajadores_involucrados || ""} onChange={handleChange} />
+        </div>
 
-          <div className="mb-3 form-check">
-            <input
-              className="form-check-input"
-              type="checkbox"
-              id="requiere_licencia"
-              name="requiere_licencia"
-              checked={form.requiere_licencia}
-              onChange={handleChange}
-            />
-            <label className="form-check-label" htmlFor="requiere_licencia">
-              Requiere licencia
-            </label>
-          </div>
+        <div className="col-12">
+          <label className="form-label">Observaciones</label>
+          <input className="form-control" name="observaciones" value={form.observaciones || ""} onChange={handleChange} />
+        </div>
 
-          {form.requiere_licencia && (
-            <div className="mb-3">
-              <label className="form-label">Días de licencia</label>
-              <input
-                type="number"
-                min="0"
-                name="dias_licencia"
-                className="form-control"
-                value={form.dias_licencia}
-                onChange={handleChange}
-              />
-            </div>
-          )}
-
-          <div className="mb-3">
-            <label className="form-label">Observaciones</label>
-            <textarea
-              name="observaciones"
-              className="form-control"
-              rows="2"
-              value={form.observaciones}
-              onChange={handleChange}
-            />
-          </div>
-
-          <button className="btn btn-success me-2" disabled={saving}>
-            {saving ? "Guardando..." : "Guardar"}
-          </button>
-          <button
-            type="button"
-            className="btn btn-secondary"
-            onClick={() => navigate("/accidentes")}
-            disabled={saving}
-          >
-            Cancelar
-          </button>
-        </form>
-      )}
+        <div className="col-12">
+          <button className="btn btn-success me-2" disabled={saving}>{saving ? "Guardando..." : "Guardar"}</button>
+          <button type="button" className="btn btn-secondary" onClick={() => navigate("/accidentes")} disabled={saving}>Cancelar</button>
+        </div>
+      </form>
     </div>
   );
 }
