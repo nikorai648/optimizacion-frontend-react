@@ -1,92 +1,96 @@
-// src/pages/EficienciaListPage.jsx
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import {
-  getEficiencias,
-  deleteEficiencia,
-} from "../api/eficiencias";
+import { getEficiencias, deleteEficiencia } from "../api/eficiencias";
 
 export default function EficienciaListPage() {
-  const [eficiencias, setEficiencias] = useState([]);
+  const [items, setItems] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-  const cargar = () => {
-    getEficiencias()
-      .then((data) => setEficiencias(data))
-      .catch(() => setError("No se pudieron cargar las eficiencias"));
+  const cargar = async () => {
+    setLoading(true);
+    setError("");
+    try {
+      const data = await getEficiencias();
+      setItems(Array.isArray(data) ? data : []);
+    } catch (err) {
+      console.error(err);
+      setError("No se pudieron cargar las eficiencias");
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => {
     cargar();
   }, []);
 
-  const handleDelete = async (id) => {
-    if (!window.confirm("¿Eliminar registro de eficiencia?")) return;
+  const eliminar = async (id) => {
+    if (!window.confirm("¿Eliminar eficiencia?")) return;
     try {
       await deleteEficiencia(id);
-      cargar();
-    } catch (e) {
-      setError("Error eliminando eficiencia");
+      setItems((prev) => prev.filter((e) => e.id !== id));
+    } catch {
+      setError("Error al eliminar eficiencia");
     }
   };
 
   return (
     <div className="container mt-4">
-      <h3>Eficiencia de Trabajadores</h3>
-
-      {error && <div className="alert alert-danger">{error}</div>}
-
-      <div className="mb-3">
-        <Link className="btn btn-primary" to="/eficiencias/nueva">
-          Nueva Eficiencia
+      <div className="d-flex justify-content-between mb-3">
+        <h3>Eficiencia</h3>
+        <Link to="/eficiencias/nueva" className="btn btn-primary">
+          Nueva
         </Link>
       </div>
 
-      <table className="table table-bordered table-striped">
-        <thead>
-          <tr>
-            <th>RUT Trabajador</th>
-            <th>Nombre</th>
-            <th>ID Eficiencia</th>
-            <th>Trabajos en 1 mes</th>
-            <th>Sueldo promedio informado</th>
-            <th>Acciones</th>
-          </tr>
-        </thead>
-        <tbody>
-          {eficiencias.map((e) => (
-            <tr key={e.id}>
-              <td>{e.trabajador_rut}</td>
-              <td>{e.trabajador_nombre}</td>
-              <td>{e.id_eficiencia}</td>
-              <td>{e.trabajos_completados_en_1_mes}</td>
-              <td>{e.sueldo_promedio_informado}</td>
-              <td>
-                <Link
-                  className="btn btn-sm btn-link"
-                  to={`/eficiencias/${e.id}`}
-                >
-                  Editar
-                </Link>
-                <button
-                  className="btn btn-sm btn-danger ms-2"
-                  onClick={() => handleDelete(e.id)}
-                >
-                  Eliminar
-                </button>
-              </td>
-            </tr>
-          ))}
+      {loading && <div>Cargando...</div>}
+      {!loading && error && <div className="alert alert-danger">{error}</div>}
 
-          {eficiencias.length === 0 && (
+      {!loading && !error && (
+        <table className="table table-striped">
+          <thead>
             <tr>
-              <td colSpan="6" className="text-center">
-                Sin registros de eficiencia.
-              </td>
+              <th>RUT</th>
+              <th>Nombre</th>
+              <th>ID</th>
+              <th>Trabajos (1 mes)</th>
+              <th>Sueldo promedio</th>
+              <th></th>
             </tr>
-          )}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {items.map((e) => (
+              <tr key={e.id}>
+                <td>{e.trabajador_rut}</td>
+                <td>{e.trabajador_nombre}</td>
+                <td>{e.id_eficiencia}</td>
+                <td>{e.trabajos_completados_en_1_mes}</td>
+                <td>{e.sueldo_promedio_informado}</td>
+                <td className="text-end">
+                  <Link
+                    className="btn btn-sm btn-secondary me-2"
+                    to={`/eficiencias/${e.id}`}
+                  >
+                    Editar
+                  </Link>
+                  <button
+                    className="btn btn-sm btn-danger"
+                    onClick={() => eliminar(e.id)}
+                  >
+                    Eliminar
+                  </button>
+                </td>
+              </tr>
+            ))}
+            {items.length === 0 && (
+              <tr>
+                <td colSpan="6">Sin registros</td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+      )}
     </div>
   );
 }
