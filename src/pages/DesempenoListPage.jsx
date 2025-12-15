@@ -1,10 +1,6 @@
-// src/pages/DesempenoListPage.jsx
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import {
-  getDesempenos,
-  deleteDesempeno,
-} from "../api/desempenos";
+import { deleteDesempeno, getDesempenos } from "../api/desempenos";
 
 export default function DesempenoListPage() {
   const [items, setItems] = useState([]);
@@ -12,84 +8,58 @@ export default function DesempenoListPage() {
 
   const cargar = async () => {
     try {
-      const data = await getDesempenos();
-      setItems(data);
       setError("");
-    } catch (err) {
-      console.error(err);
-      setError("No se pudieron cargar los desempeños");
+      setItems(await getDesempenos());
+    } catch (e) {
+      setError(e.message || "Error cargando desempeños");
     }
   };
 
-  useEffect(() => {
-    cargar();
-  }, []);
+  useEffect(() => { cargar(); }, []);
 
   const handleDelete = async (id) => {
-    if (!window.confirm("¿Eliminar este registro de desempeño?")) return;
+    if (!window.confirm("¿Eliminar desempeño?")) return;
     try {
       await deleteDesempeno(id);
-      setItems((prev) => prev.filter((d) => d.id !== id));
-    } catch (err) {
-      console.error(err);
-      alert("Error al eliminar desempeño");
+      setItems((p) => p.filter((x) => x.id !== id));
+    } catch (e) {
+      alert(e.message || "Error eliminando");
     }
   };
 
   return (
     <div className="container mt-4">
-      <h3>Desempeño de Trabajadores</h3>
+      <div className="d-flex justify-content-between align-items-center mb-3">
+        <h3>Desempeños</h3>
+        <Link to="/desempenos/nuevo" className="btn btn-primary">Nuevo</Link>
+      </div>
 
       {error && <div className="alert alert-danger">{error}</div>}
 
-      <div className="mb-3">
-        <Link className="btn btn-primary" to="/desempenos/nuevo">
-          Nuevo
-        </Link>
-      </div>
-
-      <table className="table table-bordered table-sm">
+      <table className="table table-striped table-sm">
         <thead>
           <tr>
             <th>RUT</th>
             <th>Nombre</th>
-            <th>ID Desempeño</th>
-            <th>Forma de hacer trabajos</th>
-            <th>Posibles quejas</th>
-            <th>Acciones</th>
+            <th>ID</th>
+            <th>Quejas</th>
+            <th className="text-end">Acciones</th>
           </tr>
         </thead>
         <tbody>
-          {items.map((d) => (
-            <tr key={d.id}>
-              <td>{d.trabajador_rut}</td>
-              <td>{d.trabajador_nombre}</td>
-              <td>{d.id_desempeno}</td>
-              <td>{d.forma_de_hacer_trabajos}</td>
-              <td>{d.posibles_quejas}</td>
-              <td>
-                <Link
-                  className="btn btn-sm btn-secondary me-2"
-                  to={`/desempenos/${d.id}`}
-                >
-                  Editar
-                </Link>
-                <button
-                  className="btn btn-sm btn-danger"
-                  onClick={() => handleDelete(d.id)}
-                >
-                  Eliminar
-                </button>
+          {items.map((x) => (
+            <tr key={x.id}>
+              <td>{x.trabajador_rut}</td>
+              <td>{x.trabajador_nombre}</td>
+              <td>{x.id_desempeno}</td>
+              <td>{x.posibles_quejas}</td>
+              <td className="text-end">
+                <Link className="btn btn-sm btn-secondary me-2" to={`/desempenos/${x.id}`}>Editar</Link>
+                <button className="btn btn-sm btn-danger" onClick={() => handleDelete(x.id)}>Eliminar</button>
               </td>
             </tr>
           ))}
-          {items.length === 0 && (
-            <tr>
-              <td colSpan="6" className="text-center">
-                Sin registros
-              </td>
-            </tr>
-          )}
+          {items.length === 0 && <tr><td colSpan="5" className="text-center">Sin registros</td></tr>}
         </tbody>
       </table>
     </div>

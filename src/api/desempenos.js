@@ -1,22 +1,13 @@
-// src/api/desempenos.js
 import { api } from "./client";
 
 export async function getDesempenos() {
-  try {
-    const res = await api.get("/api/desempenos/");
-    return res.data;
-  } catch (err) {
-    throw new Error("Error al cargar desempeños");
-  }
+  const res = await api.get("/api/desempenos/");
+  return res.data;
 }
 
 export async function getDesempeno(id) {
-  try {
-    const res = await api.get(`/api/desempenos/${id}/`);
-    return res.data;
-  } catch (err) {
-    throw new Error("Error al cargar desempeño");
-  }
+  const res = await api.get(`/api/desempenos/${id}/`);
+  return res.data;
 }
 
 export async function createDesempeno(data) {
@@ -24,8 +15,9 @@ export async function createDesempeno(data) {
     const res = await api.post("/api/desempenos/", data);
     return res.data;
   } catch (err) {
-    console.error("Error creación desempeño:", err?.response?.data);
-    throw new Error("Error al crear desempeño");
+    const detail = err?.response?.data;
+    console.error("Error creación desempeño:", detail);
+    throw new Error(typeof detail === "string" ? detail : JSON.stringify(detail));
   }
 }
 
@@ -34,16 +26,13 @@ export async function updateDesempeno(id, data) {
     const res = await api.put(`/api/desempenos/${id}/`, data);
     return res.data;
   } catch (err) {
-    console.error("Error actualización desempeño:", err?.response?.data);
-    throw new Error("Error al actualizar desempeño");
+    const detail = err?.response?.data;
+    console.error("Error actualización desempeño:", detail);
+    throw new Error(typeof detail === "string" ? detail : JSON.stringify(detail));
   }
 }
 
 export async function deleteDesempeno(id) {
-  try {
-    await api.delete(`/api/desempenos/${id}/`);
-    return true;
-  } catch (err) {
-    throw new Error("Error al eliminar desempeño");
-  }
+  await api.delete(`/api/desempenos/${id}/`);
+  return true;
 }

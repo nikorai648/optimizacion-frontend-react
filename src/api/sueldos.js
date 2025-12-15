@@ -1,22 +1,13 @@
-// src/api/sueldos.js
 import { api } from "./client";
 
 export async function getSueldos() {
-  try {
-    const res = await api.get("/api/sueldos/");
-    return res.data;
-  } catch (err) {
-    throw new Error("Error al cargar sueldos");
-  }
+  const res = await api.get("/api/sueldos/");
+  return res.data;
 }
 
 export async function getSueldo(id) {
-  try {
-    const res = await api.get(`/api/sueldos/${id}/`);
-    return res.data;
-  } catch (err) {
-    throw new Error("Error al cargar sueldo");
-  }
+  const res = await api.get(`/api/sueldos/${id}/`);
+  return res.data;
 }
 
 export async function createSueldo(data) {
@@ -24,8 +15,9 @@ export async function createSueldo(data) {
     const res = await api.post("/api/sueldos/", data);
     return res.data;
   } catch (err) {
-    console.error("Error creación sueldo:", err?.response?.data);
-    throw new Error("Error al crear sueldo");
+    const detail = err?.response?.data;
+    console.error("Error creación sueldo:", detail);
+    throw new Error(typeof detail === "string" ? detail : JSON.stringify(detail));
   }
 }
 
@@ -34,16 +26,13 @@ export async function updateSueldo(id, data) {
     const res = await api.put(`/api/sueldos/${id}/`, data);
     return res.data;
   } catch (err) {
-    console.error("Error actualización sueldo:", err?.response?.data);
-    throw new Error("Error al actualizar sueldo");
+    const detail = err?.response?.data;
+    console.error("Error actualización sueldo:", detail);
+    throw new Error(typeof detail === "string" ? detail : JSON.stringify(detail));
   }
 }
 
 export async function deleteSueldo(id) {
-  try {
-    await api.delete(`/api/sueldos/${id}/`);
-    return true;
-  } catch (err) {
-    throw new Error("Error al eliminar sueldo");
-  }
+  await api.delete(`/api/sueldos/${id}/`);
+  return true;
 }

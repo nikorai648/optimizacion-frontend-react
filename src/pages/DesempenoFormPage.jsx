@@ -1,149 +1,85 @@
-// src/pages/DesempenoFormPage.jsx
 import React, { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import {
-  createDesempeno,
-  getDesempeno,
-  updateDesempeno,
-} from "../api/desempenos";
+import { createDesempeno, getDesempeno, updateDesempeno } from "../api/desempenos";
 
 const initialForm = {
   trabajador_rut: "",
   trabajador_nombre: "",
-  id_desempeno: "",
+  id_desempeno: 1,
   forma_de_hacer_trabajos: "",
   posibles_quejas: "",
 };
 
 export default function DesempenoFormPage() {
   const { id } = useParams();
+  const esEditar = Boolean(id);
   const navigate = useNavigate();
+
   const [form, setForm] = useState(initialForm);
   const [error, setError] = useState("");
-
-  const esEditar = Boolean(id);
+  const [saving, setSaving] = useState(false);
 
   useEffect(() => {
-    if (esEditar) {
-      getDesempeno(id)
-        .then((data) => {
-          setForm({
-            trabajador_rut: data.trabajador_rut || "",
-            trabajador_nombre: data.trabajador_nombre || "",
-            id_desempeno: data.id_desempeno ?? "",
-            forma_de_hacer_trabajos: data.forma_de_hacer_trabajos || "",
-            posibles_quejas: data.posibles_quejas || "",
-          });
-        })
-        .catch((err) => {
-          console.error(err);
-          setError("No se pudo cargar el desempeño");
-        });
-    }
+    if (!esEditar) return;
+    getDesempeno(id)
+      .then((data) => setForm({ ...initialForm, ...data }))
+      .catch((e) => setError(e.message || "No se pudo cargar"));
   }, [id, esEditar]);
 
   const handleChange = (e) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
-  };
-
-  const validar = () => {
-    if (!form.trabajador_rut || !form.trabajador_nombre) {
-      return "RUT y nombre del trabajador son obligatorios.";
-    }
-    if (!form.id_desempeno) {
-      return "Debe indicar un ID de desempeño.";
-    }
-    return "";
+    const { name, value, type } = e.target;
+    const v = type === "number" ? Number(value) : value;
+    setForm((p) => ({ ...p, [name]: v }));
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const msg = validar();
-    if (msg) {
-      setError(msg);
-      return;
-    }
-
+    setSaving(true);
+    setError("");
     try {
-      if (esEditar) {
-        await updateDesempeno(id, form);
-      } else {
-        await createDesempeno(form);
-      }
+      esEditar ? await updateDesempeno(id, form) : await createDesempeno(form);
       navigate("/desempenos");
-    } catch (err) {
-      console.error(err);
-      setError("Error guardando desempeño");
+    } catch (e2) {
+      setError(e2.message || "Error guardando");
+    } finally {
+      setSaving(false);
     }
   };
 
   return (
-    <div className="container mt-4 col-md-6">
+    <div className="container mt-4 col-md-8">
       <h3>{esEditar ? "Editar Desempeño" : "Nuevo Desempeño"}</h3>
-
       {error && <div className="alert alert-danger">{error}</div>}
 
       <form className="row g-3" onSubmit={handleSubmit}>
         <div className="col-md-6">
-          <label className="form-label">RUT trabajador</label>
-          <input
-            name="trabajador_rut"
-            className="form-control"
-            value={form.trabajador_rut}
-            onChange={handleChange}
-          />
+          <label className="form-label">Trabajador RUT</label>
+          <input className="form-control" name="trabajador_rut" value={form.trabajador_rut} onChange={handleChange} required />
         </div>
 
         <div className="col-md-6">
-          <label className="form-label">Nombre trabajador</label>
-          <input
-            name="trabajador_nombre"
-            className="form-control"
-            value={form.trabajador_nombre}
-            onChange={handleChange}
-          />
+          <label className="form-label">Trabajador Nombre</label>
+          <input className="form-control" name="trabajador_nombre" value={form.trabajador_nombre} onChange={handleChange} required />
         </div>
 
         <div className="col-md-4">
-          <label className="form-label">ID Desempeño</label>
-          <input
-            name="id_desempeno"
-            type="number"
-            className="form-control"
-            value={form.id_desempeno}
-            onChange={handleChange}
-          />
+          <label className="form-label">ID desempeño</label>
+          <input type="number" min="1" className="form-control" name="id_desempeno" value={form.id_desempeno} onChange={handleChange} required />
         </div>
 
         <div className="col-12">
           <label className="form-label">Forma de hacer trabajos</label>
-          <input
-            name="forma_de_hacer_trabajos"
-            className="form-control"
-            value={form.forma_de_hacer_trabajos}
-            onChange={handleChange}
-          />
+          <input className="form-control" name="forma_de_hacer_trabajos" value={form.forma_de_hacer_trabajos || ""} onChange={handleChange} />
         </div>
 
         <div className="col-12">
           <label className="form-label">Posibles quejas</label>
-          <input
-            name="posibles_quejas"
-            className="form-control"
-            value={form.posibles_quejas}
-            onChange={handleChange}
-          />
+          <input className="form-control" name="posibles_quejas" value={form.posibles_quejas || ""} onChange={handleChange} />
         </div>
 
-        <div className="col-12 mt-3">
-          <button className="btn btn-success me-2">Guardar</button>
-          <button
-            type="button"
-            className="btn btn-secondary"
-            onClick={() => navigate("/desempenos")}
-          >
-            Cancelar
-          </button>
+        <div className="col-12">
+          <button className="btn btn-success me-2" disabled={saving}>{saving ? "Guardando..." : "Guardar"}</button>
+          <button type="button" className="btn btn-secondary" onClick={() => navigate("/desempenos")} disabled={saving}>Cancelar</button>
         </div>
       </form>
     </div>
