@@ -36,3 +36,18 @@ body {
   padding: 16px;
   box-shadow: 0 6px 18px rgba(0,0,0,.08);
 }
+/* Logo dentro del navbar */
+.logo-navbar {
+  width: 42px;
+  height: 42px;
+  object-fit: contain;
+  border-radius: 6px;
+  background: #fff;
+  padding: 4px;
+}
+
+/* Ajuste visual del navbar */
+.navbar-brand {
+  font-weight: 600;
+  letter-spacing: 0.5px;
+}

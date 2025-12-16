@@ -20,12 +20,10 @@ export default function Navbar() {
         <Link className="navbar-brand d-flex align-items-center" to="/">
           <img
             src="/img/logo-carran.jpg"
-            alt="logo-carran"
-            width="36"
-            height="36"
-            className="me-2 rounded"
+            alt="Logo Constructora Carrán"
+            className="logo-navbar me-2"
           />
-          Optimizacion y Logistica
+          Optimización y Logística
         </Link>
 
         {/* BOTÓN MÓVIL */}
@@ -41,24 +39,12 @@ export default function Navbar() {
         {/* LINKS */}
         <div className="collapse navbar-collapse" id="navbarNav">
           <ul className="navbar-nav me-auto">
-            <li className="nav-item">
-              <NavLink className="nav-link" to="/trabajadores">Trabajadores</NavLink>
-            </li>
-            <li className="nav-item">
-              <NavLink className="nav-link" to="/asistencias">Asistencias</NavLink>
-            </li>
-            <li className="nav-item">
-              <NavLink className="nav-link" to="/accidentes">Accidentes</NavLink>
-            </li>
-            <li className="nav-item">
-              <NavLink className="nav-link" to="/eficiencias">Eficiencia</NavLink>
-            </li>
-            <li className="nav-item">
-              <NavLink className="nav-link" to="/desempenos">Desempeño</NavLink>
-            </li>
-            <li className="nav-item">
-              <NavLink className="nav-link" to="/sueldos">Sueldos</NavLink>
-            </li>
+            <li className="nav-item"><NavLink className="nav-link" to="/trabajadores">Trabajadores</NavLink></li>
+            <li className="nav-item"><NavLink className="nav-link" to="/asistencias">Asistencias</NavLink></li>
+            <li className="nav-item"><NavLink className="nav-link" to="/accidentes">Accidentes</NavLink></li>
+            <li className="nav-item"><NavLink className="nav-link" to="/eficiencias">Eficiencia</NavLink></li>
+            <li className="nav-item"><NavLink className="nav-link" to="/desempenos">Desempeño</NavLink></li>
+            <li className="nav-item"><NavLink className="nav-link" to="/sueldos">Sueldos</NavLink></li>
           </ul>
 
           {/* USUARIO */}
@@ -69,10 +55,7 @@ export default function Navbar() {
               </span>
             </li>
             <li className="nav-item">
-              <button
-                className="btn btn-light btn-sm"
-                onClick={handleLogout}
-              >
+              <button className="btn btn-light btn-sm" onClick={handleLogout}>
                 Salir
               </button>
             </li>
